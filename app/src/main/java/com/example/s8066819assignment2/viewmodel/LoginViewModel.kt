@@ -4,6 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.s8066819assignment2.model.LoginRequest
+import com.example.s8066819assignment2.model.LoginResult
 import com.example.s8066819assignment2.network.ApiService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -14,15 +15,17 @@ class LoginViewModel @Inject constructor(
     private val apiService: ApiService
 ) : ViewModel() {
 
-    val loginResult = MutableLiveData<Result<String>>()
+    val loginResult = MutableLiveData<LoginResult>()
 
     fun login(username: String, password: String) {
+        loginResult.value = LoginResult.Loading
+
         viewModelScope.launch {
             try {
                 val response = apiService.login(LoginRequest(username, password))
-                loginResult.postValue(Result.success(response.keypass))
+                loginResult.value = LoginResult.Success(response.keypass)
             } catch (e: Exception) {
-                loginResult.postValue(Result.failure(e))
+                loginResult.value = LoginResult.Error(e.message ?: "Login failed")
             }
         }
     }

@@ -15,15 +15,22 @@ class DashboardViewModel @Inject constructor(
 ) : ViewModel() {
 
     val entities = MutableLiveData<List<Entity>>()
-    val errorMessage = MutableLiveData<String>()
+    val errorMessage = MutableLiveData<String?>()
+    val isLoading = MutableLiveData<Boolean>()
 
     fun loadEntities(keypass: String) {
+        isLoading.value = true
+
         viewModelScope.launch {
             try {
                 val response = apiService.getDashboard(keypass)
-                entities.postValue(response.entities)
+                entities.value = response.entities
+                errorMessage.value = null
             } catch (e: Exception) {
-                errorMessage.postValue(e.message)
+                errorMessage.value = "Error: ${e.message}"
+                entities.value = emptyList()
+            } finally {
+                isLoading.value = false
             }
         }
     }

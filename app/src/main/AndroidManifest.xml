@@ -27,8 +27,13 @@
         </activity>
 
         <activity
-            android:name=".DashboardActivity"
+            android:name=".view.DashboardActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".view.DetailsActivity"
+            android:exported="false"
+            android:parentActivityName=".view.DashboardActivity" />
 
     </application>
 

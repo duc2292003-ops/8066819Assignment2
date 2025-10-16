@@ -2,34 +2,33 @@ package com.example.s8066819assignment2
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import com.example.s8066819assignment2.databinding.S8066819LoginBinding
+import com.example.s8066819assignment2.model.LoginResult
+import com.example.s8066819assignment2.view.DashboardActivity
 import com.example.s8066819assignment2.viewmodel.LoginViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class LoginActivity : AppCompatActivity() {
 
+    private lateinit var binding: S8066819LoginBinding
     private val viewModel: LoginViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.s8066819_login)
+        binding = S8066819LoginBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        val etUsername = findViewById<EditText>(R.id.etUsername)
-        val etPassword = findViewById<EditText>(R.id.etPassword)
-        val btnLogin = findViewById<Button>(R.id.btnLogin)
+        binding.etUsername.setText("minh")
+        binding.etPassword.setText("8066819")
 
-        // Set giá trị mặc định
-        etUsername.setText("minh")
-        etPassword.setText("8066819")
-
-        btnLogin.setOnClickListener {
-            val username = etUsername.text.toString().trim()
-            val password = etPassword.text.toString().trim()
+        binding.btnLogin.setOnClickListener {
+            val username = binding.etUsername.text.toString().trim()
+            val password = binding.etPassword.text.toString().trim()
 
             if (username.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Please enter full information", Toast.LENGTH_SHORT).show()
@@ -39,18 +38,37 @@ class LoginActivity : AppCompatActivity() {
             viewModel.login(username, password)
         }
 
-        // Lắng nghe kết quả login
+        observeViewModel()
+    }
+
+    private fun observeViewModel() {
         viewModel.loginResult.observe(this) { result ->
-            result.onSuccess { keypass ->
-                Toast.makeText(this, "Login Successfully!", Toast.LENGTH_SHORT).show()
-                val intent = Intent(this, DashboardActivity::class.java)
-                intent.putExtra("keypass", keypass)
-                startActivity(intent)
-                finish()
-            }
-            result.onFailure { exception ->
-                Toast.makeText(this, "Error: ${exception.message}", Toast.LENGTH_LONG).show()
+            Log.d("LoginActivity", "LoginResult received: $result")
+
+            when (result) {
+                is LoginResult.Success -> {
+                    Log.d("LoginActivity", "Login successful, keypass: ${result.keypass}")
+                    navigateToDashboard(result.keypass)
+                }
+
+                is LoginResult.Error -> {
+                    Log.e("LoginActivity", "Login error: ${result.message}")
+                    Toast.makeText(this, result.message, Toast.LENGTH_SHORT).show()
+                }
+
+                is LoginResult.Loading -> {
+                    Log.d("LoginActivity", "Login loading...")
+                }
             }
         }
+    }
+
+    private fun navigateToDashboard(keypass: String) {
+        val intent = Intent(this, DashboardActivity::class.java).apply {
+            putExtra("keypass", keypass)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+        startActivity(intent)
+        finish()
     }
 }
