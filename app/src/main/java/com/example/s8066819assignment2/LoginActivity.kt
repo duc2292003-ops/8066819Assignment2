@@ -24,7 +24,6 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.etUsername.setText("minh")
-        binding.etPassword.setText("8066819")
 
         binding.btnLogin.setOnClickListener {
             val username = binding.etUsername.text.toString().trim()
